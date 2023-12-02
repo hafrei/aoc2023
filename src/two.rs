@@ -20,6 +20,29 @@ impl Game {
             && self.green <= POSSIBLE_GAME.green
             && self.blue <= POSSIBLE_GAME.blue
     }
+    fn game_power(&self) -> u32 {
+        self.red * self.green * self.blue
+    }
+    fn count_cubes(&mut self, input: String) {
+        if input.contains("blue") {
+            let count: u32 = parse_number(input.to_string());
+            if count > self.blue {
+                self.blue = count;
+            }
+        }
+        if input.contains("red") {
+            let count: u32 = parse_number(input.to_string());
+            if count > self.red {
+                self.red = count;
+            }
+        }
+        if input.contains("green") {
+            let count: u32 = parse_number(input.to_string());
+            if count > self.green {
+                self.green = count;
+            }
+        }
+    }
 }
 
 const POSSIBLE_GAME: Game = Game {
@@ -38,6 +61,8 @@ pub fn run(input: String) {
         .map(|x| x.id)
         .sum();
     println!("The sum of part one is {sum}");
+    let power: u32 = games.iter().map(|x| x.game_power()).sum();
+    println!("The sum of part two is {power}");
 }
 
 fn build_games(input: String) -> Vec<Game> {
@@ -48,26 +73,7 @@ fn build_games(input: String) -> Vec<Game> {
         let (id, viewed) = l.split_once(':').unwrap();
         game.id = parse_number(id.to_string());
         for shown in viewed.split(';') {
-            for single in shown.split(',') {
-                if single.contains("blue") {
-                    let count: u32 = parse_number(single.to_string());
-                    if count > game.blue {
-                        game.blue = count;
-                    }
-                }
-                if single.contains("red") {
-                    let count: u32 = parse_number(single.to_string());
-                    if count > game.red {
-                        game.red = count;
-                    }
-                }
-                if single.contains("green") {
-                    let count: u32 = parse_number(single.to_string());
-                    if count > game.green {
-                        game.green = count;
-                    }
-                }
-            }
+            game.count_cubes(shown.to_string());
         }
         games.push(game);
     });
