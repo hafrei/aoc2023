@@ -34,12 +34,12 @@ fn part_two(mut input: String) -> u32 {
 fn part_one(input: String) -> u32 {
     input
         .split('\n')
-        .map(|x| x.chars().filter(|x| x.is_digit(10)).collect::<String>())
+        .map(|x| x.chars().filter(|x| x.is_ascii_digit()).collect::<String>())
         .filter(|x| !x.is_empty())
         .map(|mut x| {
             if x.len() == 1 {
                 let double = x.pop().unwrap();
-                x.push(double.clone());
+                x.push(double);
                 x.push(double);
                 x
             } else if x.len() > 2 {
