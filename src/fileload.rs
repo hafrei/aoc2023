@@ -41,4 +41,3 @@ impl From<std::io::Error> for FileLoadError {
         FileLoadError::IOError(e)
     }
 }
-
