@@ -42,6 +42,7 @@ impl Game {
                 self.green = count;
             }
         }
+
     }
 }
 
@@ -73,7 +74,9 @@ fn build_games(input: String) -> Vec<Game> {
         let (id, viewed) = l.split_once(':').unwrap();
         game.id = parse_number(id.to_string());
         for shown in viewed.split(';') {
-            game.count_cubes(shown.to_string());
+            for single in shown.split(',') {
+                game.count_cubes(single.to_string());
+            }
         }
         games.push(game);
     });
