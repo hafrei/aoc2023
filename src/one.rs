@@ -2,15 +2,18 @@ pub fn run(input: String) {
     let stripped = part_one(input.clone());
     println!("Part 1: {:?}", stripped);
     let stripped_again = part_two(input);
-    println!("{:?}", stripped_again);
+    println!("Part 2: {:?}", stripped_again);
 }
 
-//This doesn't handle the mashup cases, I did those by hand for my second star.
-// Cause I got tired of being stuck on day one for so long.
-// TODO: handle it properly!
-// Eg oneight == 18, not 1ight
-fn part_two(input: String) -> u32 {
+fn part_two(mut input: String) -> u32 {
     let numbers = [
+        ("oneight", "18"),
+        ("twone", "21"),
+        ("eightwo", "82"),
+        ("eighthree", "83"),
+        ("fiveight", "58"),
+        ("nineight", "98"),
+        ("sevenine", "79"),
         ("one", "1"),
         ("two", "2"),
         ("three", "3"),
@@ -22,25 +25,10 @@ fn part_two(input: String) -> u32 {
         ("nine", "9"),
     ];
 
-    let mut bup = input.clone();
-    let mut skip = 0;
-    input
-        .chars()
-        .collect::<Vec<char>>()
-        .windows(5)
-        .for_each(|mw| {
-            if skip != 0 {
-                skip -=1;
-            } else {
-            let working = mw.iter().clone().to_owned().collect::<String>();
-            for (str_n, n) in numbers {
-                if working.contains(str_n) {
-                    bup = bup.replacen(str_n, n, 1);
-                    skip = str_n.len() -1;
-                }
-            }}
-        });
-    part_one(bup)
+    for (str_n, n) in numbers {
+        input = input.replace(str_n, n);
+    }
+    part_one(input)
 }
 
 fn part_one(input: String) -> u32 {
