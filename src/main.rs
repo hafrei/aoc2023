@@ -1,4 +1,4 @@
-use aoc2023::{day::Day::*, fileload, one, two};
+use aoc2023::{day::Day::*, fileload, one, two, three};
 use std::{env, process::ExitCode};
 
 fn main() -> ExitCode {
@@ -20,7 +20,7 @@ fn main() -> ExitCode {
     match day {
         One => one::run(input_buffer),
         Two => two::run(input_buffer),
-        // Three => three::run(input_buffer),
+        Three => three::run(input_buffer),
         // Four => four::run(input_buffer),
         // Five => five::run(input_buffer),
         // Six => six::run(input_buffer),
