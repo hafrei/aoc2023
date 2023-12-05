@@ -21,7 +21,7 @@ fn main() -> ExitCode {
         One => one::run(input_buffer),
         Two => two::run(input_buffer),
         Three => three::run(input_buffer),
-        // Four => four::run(input_buffer),
+        Four => four::run(input_buffer),
         // Five => five::run(input_buffer),
         // Six => six::run(input_buffer),
         // Seven => seven::run(input_buffer),
