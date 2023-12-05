@@ -46,6 +46,130 @@ impl Display for Section {
 }
 
 pub fn run(input: String) {
+    part_one(input.clone());
+
+    let mut width = 0;
+    let mut grid = Vec::new();
+    let mut series = 1;
+    for (y, lin) in input.lines().enumerate() {
+        if width == 0 {
+            width = lin.len() - 1;
+        }
+        for (x, c) in lin.chars().enumerate() {
+            let sec = Section::new(x, y, c, &mut series);
+            grid.push(sec);
+        }
+    }
+    let height = grid.len() / width;
+
+    //OH NO IT'S SO SLOW
+    let comp = grid.clone();
+    let _ = comp
+        .iter()
+        .enumerate()
+        .filter(|(_, x)| x.symbol == '*')
+        .map(|(e, sym)| {
+            let mut retry = 5; //3 is too low. Why? Haha I dunno
+            let mut active = Some(e);
+            while active.is_some() {
+                let next = active.unwrap();
+                if grid[next].colour != Colour::Green {
+                    grid[next].colour = Colour::BrightPurple;
+                }
+                grid[next].series = sym.series;
+                let x = grid[next].x;
+                let y = grid[next].y;
+                active = check_for_num(x, y, width, height, &grid);
+                if active.is_none() {
+                    retry -= 1;
+                    active = Some(e);
+                }
+                if retry == 0 {
+                    break;
+                }
+            }
+            *sym
+        })
+        .collect::<Vec<Section>>();
+
+    for x in grid.iter() {
+        print!("{x}");
+        if x.x == width {
+            println!("");
+        }
+    }
+
+    println!("");
+
+    let mut acc = 0;
+    for s in 1..series {
+        let pile = grid
+            .iter()
+            .cloned()
+            .filter(|x| x.symbol.is_ascii_digit() && x.series == Some(s))
+            .collect::<Vec<Section>>();
+        let mut numbers = Vec::new();
+        let mut num = Vec::new();
+        let mut prev_y = 999;
+        let mut prev_x = 999;
+        for l in pile.iter() {
+            println!("{l:?}");
+            if prev_y == 999 {
+                prev_y = l.y;
+            }
+
+            if prev_x == 999 {
+                prev_x = l.x;
+            }
+
+            if prev_y == l.y {
+                // println!("same row!");
+                if l.x - prev_x >= 2 {
+                    if !num.is_empty() {
+                        let sum = num.iter().collect::<String>().parse::<u32>().unwrap();
+                        numbers.push(sum);
+                        num.clear();
+                    }
+                    num.push(l.symbol);
+                } else {
+                    // println!("same number!");
+                    num.push(l.symbol);
+                    if num.len() == 3 {
+                        let sum = num.iter().collect::<String>().parse::<u32>().unwrap();
+                        numbers.push(sum);
+                        num.clear();
+                    }
+                }
+            } else {
+                // println!("different row!");
+                if !num.is_empty() {
+                    let sum = num.iter().collect::<String>().parse::<u32>().unwrap();
+                    numbers.push(sum);
+                    num.clear();
+                }
+                num.push(l.symbol);
+            }
+
+            //update previous
+            prev_y = l.y;
+            prev_x = l.x;
+        }
+        // println!("{num:?}, {acc}");
+        if !num.is_empty() {
+            let sum = num.iter().collect::<String>().parse::<u32>().unwrap();
+            numbers.push(sum);
+            num.clear();
+        }
+        if numbers.len() > 1 {
+            let product = numbers.iter().product::<u32>();
+            println!("{} = {acc} + {product}\n", acc + product);
+            acc += product;
+        }
+    }
+    println!("{acc}");
+}
+
+fn part_one(input: String) {
     let mut width = 0;
     let mut grid = Vec::new();
     let mut series = 1;
@@ -98,7 +222,7 @@ pub fn run(input: String) {
             .filter(|x| x.symbol.is_ascii_digit() && x.series == Some(s))
             .collect::<Vec<Section>>();
         let mut num = Vec::new();
-        let mut prev_y = 999; 
+        let mut prev_y = 999;
         let mut prev_x = 999;
         for l in pile.iter() {
             println!("{l:?}");
