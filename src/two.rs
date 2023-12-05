@@ -42,7 +42,6 @@ impl Game {
                 self.green = count;
             }
         }
-
     }
 }
 
