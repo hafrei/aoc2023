@@ -1,20 +1,31 @@
+struct Pile {
+    starting_cards: Vec<Card>,
+    next_set: Vec<u32>,
+}
+
+impl Pile {
+    fn new(input: String) -> Self {
+        Self {
+            starting_cards: get_cards(input),
+            next_set: vec![],
+        }
+    }
+}
+
 struct Card {
     id: u32,
     winning: Vec<u32>,
     play: Vec<u32>,
-    id_links: Vec<u32>,
     point_value: Option<u32>,
 }
 
 impl Card {
-
     fn new(id: u32, winning: Vec<u32>, play: Vec<u32>) -> Self {
         Self {
             id,
             winning,
             play,
-            id_links: vec![],
-            point_value: None
+            point_value: None,
         }
     }
 
@@ -26,18 +37,18 @@ impl Card {
             println!("Looking for {w}");
             if self.play.contains(w) {
                 println!("  Found it!");
-               value += match tally {
-                 0 | 1 => 1,
-                 2 => 2,
-                 3 => 4,
-                 4 => 8,
-                 5 => 16,
-                 6 => 32,
-                 7 => 64,
-                 8 => 128,
-                 9 => 256,
-                 10 => 512,
-                 _ => unreachable!(),
+                value += match tally {
+                    0 | 1 => 1,
+                    2 => 2,
+                    3 => 4,
+                    4 => 8,
+                    5 => 16,
+                    6 => 32,
+                    7 => 64,
+                    8 => 128,
+                    9 => 256,
+                    10 => 512,
+                    _ => unreachable!(),
                 };
                 tally += 1;
                 println!("   {tally} wins, {value} points");
@@ -48,6 +59,12 @@ impl Card {
     }
 
     fn part_two_count_points(&mut self) {
+        let mut count = Vec::new();
+        for w in self.winning.iter() {
+            if self.play.contains(w) {
+                count.push(*w);
+            }
+        }
         self.point_value = Some(self.get_point_count());
     }
 
@@ -57,12 +74,19 @@ impl Card {
 }
 
 pub fn run(input: String) {
-    let mut cards: Vec<Card> = get_cards(input);
-    let part_one: u32 = cards.iter().map(|x| x.part_one_count_points()).sum();
+    let mut pile: Pile = Pile::new(input);
+    let part_one: u32 = pile
+        .starting_cards
+        .iter()
+        .map(|x| x.part_one_count_points())
+        .sum();
     println!("The cards are worth {part_one} points");
-    cards.iter_mut().map(|x| {x.part_two_count_points(); x});
-    let part_one: u32 = cards.iter().filter(|x| x.point_value.is_some()).map(|x| x.point_value.unwrap()).sum();
+    pile.starting_cards.iter_mut().for_each(|x| {
+        x.part_two_count_points();
+    });
     println!("The cards are worth {part_one} points");
+    // let part_two: usize = pile.starting_cards.iter().map(|x| x.id_links.len()).sum();
+    // println!("The cards are worth {part_two} points");
 }
 
 fn get_cards(input: String) -> Vec<Card> {
