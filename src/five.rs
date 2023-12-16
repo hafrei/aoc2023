@@ -30,8 +30,8 @@ impl Mapping {
             Mapping::HumidityToLocation
         }
     }
-    pub fn next(&self) -> Self {
-        match self {
+    pub fn next(&mut self) {
+        *self = match self {
             Mapping::SeedToSoil => Mapping::SoilToFertilizer,
             Mapping::SoilToFertilizer => Mapping::FertilizerToWater,
             Mapping::FertilizerToWater => Mapping::WaterToLight,
@@ -40,7 +40,7 @@ impl Mapping {
             Mapping::TemperatureToHumidity => Mapping::HumidityToLocation,
             Mapping::HumidityToLocation => Mapping::Finished,
             Mapping::Finished => unreachable!(),
-        }
+        };
     }
 }
 
@@ -115,54 +115,52 @@ impl Almanac {
         let mut map_to_find = Mapping::SeedToSoil;
         let mut next_dest = seed;
         while map_to_find != Mapping::Finished {
-            let mut maybe_source: Vec<Option<u64>> = self
+            let maybe_source: Option<u64> = self
                 .pages
                 .iter()
                 .filter(|x| x.mapping == map_to_find)
-                .map(|x| x.destination_value(next_dest))
-                .filter(|x| x.is_some())
-                .collect();
-            if !maybe_source.is_empty() {
-                let temp = maybe_source.pop();
-                next_dest = temp.unwrap().unwrap();
+                .filter_map(|x| x.destination_value(next_dest))
+                .collect::<Vec<u64>>().pop();
+            if maybe_source.is_some() {
+                next_dest = maybe_source.unwrap();
             }
-            map_to_find = map_to_find.next();
+            map_to_find.next();
         }
         next_dest
     }
 
     pub fn part_one(&self) -> u64 {
         let mut results = Vec::new();
+        println!("About to process {} seeds. Should be pretty quick.", self.seeds.len());
         self.seeds
             .par_iter()
             .map(|x| self.find_lowest_location(*x))
             .collect_into_vec(&mut results);
-        results.sort();
-        *results.first().unwrap_or(&0)
+        *results.iter().min().unwrap()
     }
 
     pub fn part_two(&self) -> u64 {
         let mut all_seeds = Vec::new();
         let mut results = Vec::new();
-        for w in self.seeds.windows(2) {
-            for i in w[0]..w[1] {
+        for w in self.seeds.chunks(2) {
+            for i in w[0]..(w[1]+w[0]) {
                 all_seeds.push(i);
             }
         }
+        println!("About to process {} seeds. \nThis is going to take awhile, every core in your machine, and all of your ram.\nMaybe go for a run or something.", all_seeds.len());
         all_seeds
             .par_iter()
             .map(|x| self.find_lowest_location(*x))
             .collect_into_vec(&mut results);
-        results.sort();
-        *results.first().unwrap_or(&0)
+        *results.iter().min().unwrap()
     }
 }
 
 pub fn run(input: String) {
     let mut almanac = Almanac::new();
     almanac.fill(input);
-    // let lowest = almanac.part_one();
-    // println!("The lowest location is {lowest}");
+    let lowest = almanac.part_one();
+    println!("The lowest location is {lowest}");
     let actual_lowest = almanac.part_two();
     println!("The real lowest location is {actual_lowest}");
 }
