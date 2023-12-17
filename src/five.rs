@@ -120,7 +120,8 @@ impl Almanac {
                 .iter()
                 .filter(|x| x.mapping == map_to_find)
                 .filter_map(|x| x.destination_value(next_dest))
-                .collect::<Vec<u64>>().pop();
+                .collect::<Vec<u64>>()
+                .pop();
             if maybe_source.is_some() {
                 next_dest = maybe_source.unwrap();
             }
@@ -131,7 +132,10 @@ impl Almanac {
 
     pub fn part_one(&self) -> u64 {
         let mut results = Vec::new();
-        println!("About to process {} seeds. Should be pretty quick.", self.seeds.len());
+        println!(
+            "About to process {} seeds. Should be pretty quick.",
+            self.seeds.len()
+        );
         self.seeds
             .par_iter()
             .map(|x| self.find_lowest_location(*x))
@@ -143,11 +147,14 @@ impl Almanac {
         let mut all_seeds = Vec::new();
         let mut results = Vec::new();
         for w in self.seeds.chunks(2) {
-            for i in w[0]..(w[1]+w[0]) {
+            for i in w[0]..(w[1] + w[0]) {
                 all_seeds.push(i);
             }
         }
-        println!("About to process {} seeds. \nThis is going to take awhile, every core in your machine, and all of your ram.\nMaybe go for a run or something.", all_seeds.len());
+        println!(
+            "\nAbout to process {} seeds. \nThis is going to take awhile, every core in your machine, and all of your ram.\nMaybe go for a run or something.",
+            all_seeds.len()
+        );
         all_seeds
             .par_iter()
             .map(|x| self.find_lowest_location(*x))
