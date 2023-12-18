@@ -1,4 +1,4 @@
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 enum Card {
     A,
     K,
@@ -36,8 +36,20 @@ impl Card {
     }
 }
 
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
+enum Type {
+    FiveKind(Card),
+    FourKind(Card),
+    FullHouse(Card, Card),
+    ThreeKind(Card),
+    TwoPair(Card, Card),
+    Pair(Card),
+    HighCard(Card),
+}
+
 #[derive(Debug, Eq, PartialEq, PartialOrd, Ord)]
 struct Hand {
+    hand_type: Type,
     cards: [Card; 5],
     bid: u32,
 }
@@ -48,11 +60,48 @@ impl Hand {
         for c in cards.chars() {
             set.push(Card::new(c));
         }
+        let hand_type = Hand::determine_hand_type(&set);
         Self {
+            hand_type,
             cards: set.try_into().unwrap(),
             bid,
         }
+    }
 
+    fn determine_hand_type(cards: &Vec<Card>) -> Type {
+        let mut high = (Card::C2, 0);
+        let mut second_high = (Card::C2, 0);
+        println!("Cards: {cards:?}");
+        for card in cards {
+            let tally = cards.iter().filter(|x| *x == card).count();
+            if tally > high.1 {
+                second_high = high;
+                high = (*card, tally);
+            } else if tally > second_high.1 && *card != high.0 {
+                second_high = (*card, tally);
+            }
+        }
+        println!("high:{high:?}\nsecond: {second_high:?}\n");
+        match high.1 {
+            5 => Type::FiveKind(high.0),
+            4 => Type::FourKind(high.0),
+            3 => {
+                if second_high.1 == 2 {
+                    Type::FullHouse(high.0, second_high.0)
+                } else {
+                    Type::ThreeKind(high.0)
+                }
+            }
+            2 => {
+                if second_high.1 == 2 {
+                    Type::TwoPair(high.0, second_high.0)
+                } else {
+                    Type::Pair(high.0)
+                }
+            }
+            1 => Type::HighCard(high.0),
+            _ => unreachable!(),
+        }
     }
 }
 
@@ -71,7 +120,14 @@ pub fn run(input: String) {
     }
     hands.sort();
     println!("");
-    for hand in hands {
+    for hand in &hands {
         println!("{hand:?}");
     }
+    let total_hands: u32 = hands.len() as u32;
+    let part_one: u32 = hands
+        .iter()
+        .enumerate()
+        .map(|(e, c)| c.bid * (total_hands - e as u32))
+        .sum();
+    println!("Total winnings: {part_one}"); //251036326 is too high
 }
