@@ -1,5 +1,77 @@
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
-enum Card {
+enum PartTwoCard {
+    A,
+    K,
+    Q,
+    T,
+    C9,
+    C8,
+    C7,
+    C6,
+    C5,
+    C4,
+    C3,
+    C2,
+    J,
+}
+
+impl CardMatch for PartTwoCard {
+    fn determine_card(c: char) -> Self {
+        match c {
+            'A' => PartTwoCard::A,
+            'K' => PartTwoCard::K,
+            'Q' => PartTwoCard::Q,
+            'T' => PartTwoCard::T,
+            '9' => PartTwoCard::C9,
+            '8' => PartTwoCard::C8,
+            '7' => PartTwoCard::C7,
+            '6' => PartTwoCard::C6,
+            '5' => PartTwoCard::C5,
+            '4' => PartTwoCard::C4,
+            '3' => PartTwoCard::C3,
+            '2' => PartTwoCard::C2,
+            'J' => PartTwoCard::J,
+            _ => unreachable!(),
+        }
+    }
+
+    fn top_two(cards: &Vec<Self>) -> ((Self, usize), (Self, usize))
+    where
+        Self: Sized,
+    {
+        println!("cards:{cards:?}");
+        let mut high = (PartTwoCard::J, 0);
+        let mut second_high = (PartTwoCard::J, 0);
+        for card in cards {
+            let tally = cards
+                .iter()
+                .filter(|x| *x == card || *x == &PartTwoCard::J)
+                .count();
+            if tally > high.1 {
+                second_high = high;
+                high = (*card, tally);
+            } else if tally > second_high.1 && *card != high.0 {
+                second_high = (*card, tally);
+            }
+        }
+        println!("high:{high:?}\nsecond: {second_high:?}");
+        let (h, mut sh) = if high.0 != second_high.0 && second_high.0 >= high.0 && second_high.1 >= high.1 {
+            (second_high, high)
+        } else {
+            (high, second_high)
+        };
+        if h.1 + sh.1 > 5 {
+        println!("   before: high:{h:?}\nsecond: {sh:?}");
+            let sub = h.1 + sh.1 - 5;
+            sh.1 -= sub;
+        }
+        println!("   after: high:{h:?}\nsecond: {sh:?}\n");
+        (h, sh)
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+enum PartOneCard {
     A,
     K,
     Q,
@@ -15,25 +87,50 @@ enum Card {
     C2,
 }
 
-impl Card {
-    pub fn new(c: char) -> Self {
+impl CardMatch for PartOneCard {
+    fn determine_card(c: char) -> Self {
         match c {
-            'A' => Card::A,
-            'K' => Card::K,
-            'Q' => Card::Q,
-            'J' => Card::J,
-            'T' => Card::T,
-            '9' => Card::C9,
-            '8' => Card::C8,
-            '7' => Card::C7,
-            '6' => Card::C6,
-            '5' => Card::C5,
-            '4' => Card::C4,
-            '3' => Card::C3,
-            '2' => Card::C2,
+            'A' => PartOneCard::A,
+            'K' => PartOneCard::K,
+            'Q' => PartOneCard::Q,
+            'J' => PartOneCard::J,
+            'T' => PartOneCard::T,
+            '9' => PartOneCard::C9,
+            '8' => PartOneCard::C8,
+            '7' => PartOneCard::C7,
+            '6' => PartOneCard::C6,
+            '5' => PartOneCard::C5,
+            '4' => PartOneCard::C4,
+            '3' => PartOneCard::C3,
+            '2' => PartOneCard::C2,
             _ => unreachable!(),
         }
     }
+
+    fn top_two(cards: &Vec<Self>) -> ((Self, usize), (Self, usize))
+    where
+        Self: Sized,
+    {
+        let mut high = (PartOneCard::C2, 0);
+        let mut second_high = (PartOneCard::C2, 0);
+        for card in cards {
+            let tally = cards.iter().filter(|x| *x == card).count();
+            if tally > high.1 {
+                second_high = high;
+                high = (*card, tally);
+            } else if tally > second_high.1 && *card != high.0 {
+                second_high = (*card, tally);
+            }
+        }
+        (high, second_high)
+    }
+}
+
+trait CardMatch {
+    fn determine_card(c: char) -> Self;
+    fn top_two(cards: &Vec<Self>) -> ((Self, usize), (Self, usize))
+    where
+        Self: Sized;
 }
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
@@ -48,40 +145,34 @@ enum Type {
 }
 
 #[derive(Debug, Eq, PartialEq, PartialOrd, Ord)]
-struct Hand {
+struct Hand<C>
+where
+    C: CardMatch,
+{
     hand_type: Type,
-    cards: [Card; 5],
+    cards: Vec<C>,
     bid: u32,
 }
 
-impl Hand {
-    pub fn new<'a>(cards: &'a str, bid: u32) -> Self {
+impl<C> Hand<C>
+where
+    C: CardMatch + PartialEq + Copy + std::fmt::Debug,
+{
+    pub fn new<'a>(cards: &'a str, bid: u32, card_type: impl Fn(char) -> C) -> Self {
         let mut set = Vec::new();
         for c in cards.chars() {
-            set.push(Card::new(c));
+            set.push(card_type(c));
         }
         let hand_type = Hand::determine_hand_type(&set);
         Self {
             hand_type,
-            cards: set.try_into().unwrap(),
+            cards: set,
             bid,
         }
     }
 
-    fn determine_hand_type(cards: &Vec<Card>) -> Type {
-        let mut high = (Card::C2, 0);
-        let mut second_high = (Card::C2, 0);
-        // println!("Cards: {cards:?}");
-        for card in cards {
-            let tally = cards.iter().filter(|x| *x == card).count();
-            if tally > high.1 {
-                second_high = high;
-                high = (*card, tally);
-            } else if tally > second_high.1 && *card != high.0 {
-                second_high = (*card, tally);
-            }
-        }
-        // println!("high:{high:?}\nsecond: {second_high:?}\n");
+    fn determine_hand_type(cards: &Vec<C>) -> Type {
+        let (high, second_high) = C::top_two(cards);
         match high.1 {
             5 => Type::FiveKind,
             4 => Type::FourKind,
@@ -106,28 +197,40 @@ impl Hand {
 }
 
 pub fn run(input: String) {
-    let mut hands: Vec<Hand> = Vec::new();
+    let mut hands: Vec<Hand<PartOneCard>> = Vec::new();
+    let mut two_hands: Vec<Hand<PartTwoCard>> = Vec::new();
     for l in input.lines() {
         let Some((hand, bid)) = l.split_once(' ') else {
             unreachable!()
         };
-        let hand = Hand::new(hand, bid.parse::<u32>().unwrap());
-        hands.push(hand);
+        let b = bid.parse::<u32>().unwrap();
+        let one_hand = Hand::new(hand, b, PartOneCard::determine_card);
+        hands.push(one_hand);
+        let two_hand = Hand::new(hand, b, PartTwoCard::determine_card);
+        two_hands.push(two_hand);
     }
 
-    for hand in &hands {
+    for hand in &two_hands {
         println!("{hand:?}");
     }
     hands.sort();
+    two_hands.sort();
     println!("");
-    for hand in &hands {
+    for hand in &two_hands {
         println!("{hand:?}");
     }
-    let total_hands: u32 = hands.len() as u32;
+    let part_one_total_hands: u32 = hands.len() as u32;
     let part_one: u32 = hands
         .iter()
         .enumerate()
-        .map(|(e, c)| c.bid * (total_hands - e as u32))
+        .map(|(e, c)| c.bid * (part_one_total_hands - e as u32))
         .sum();
-    println!("Total winnings: {part_one}");
+    println!("Part one total winnings: {part_one}");
+    let part_two_total_hands: u32 = two_hands.len() as u32;
+    let part_two: u32 = two_hands
+        .iter()
+        .enumerate()
+        .map(|(e, c)| c.bid * (part_two_total_hands - e as u32))
+        .sum();
+    println!("Total winnings: {part_two}"); //250456906 too low
 }
