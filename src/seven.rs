@@ -39,34 +39,57 @@ impl CardMatch for PartTwoCard {
     where
         Self: Sized,
     {
-        println!("cards:{cards:?}");
-        let mut high = (PartTwoCard::J, 0);
-        let mut second_high = (PartTwoCard::J, 0);
-        for card in cards {
-            let tally = cards
-                .iter()
-                .filter(|x| *x == card || *x == &PartTwoCard::J)
-                .count();
-            if tally > high.1 {
-                second_high = high;
-                high = (*card, tally);
-            } else if tally > second_high.1 && *card != high.0 {
-                second_high = (*card, tally);
+        let wildcards = cards
+            .clone()
+            .into_iter()
+            .filter(|x| *x != PartTwoCard::J)
+            .collect::<Vec<Self>>();
+        let reference = cards.clone().to_owned();
+        let mut final_high = (PartTwoCard::J, 0);
+        let mut final_second_high = (PartTwoCard::J, 0);
+        if wildcards.is_empty() {
+            for card in cards {
+                let tally = cards.iter().filter(|x| *x == card).count();
+                if tally > final_high.1 || (tally >= final_high.1 && *card < final_high.0) {
+                    final_second_high = final_high;
+                    final_high = (*card, tally);
+                } else if tally >= final_second_high.1 && *card != final_high.0 {
+                    final_second_high = (*card, tally);
+                }
             }
         }
-        println!("high:{high:?}\nsecond: {second_high:?}");
-        let (h, mut sh) = if high.0 != second_high.0 && second_high.0 >= high.0 && second_high.1 >= high.1 {
-            (second_high, high)
-        } else {
-            (high, second_high)
-        };
-        if h.1 + sh.1 > 5 {
-        println!("   before: high:{h:?}\nsecond: {sh:?}");
-            let sub = h.1 + sh.1 - 5;
-            sh.1 -= sub;
+
+        for not_joker in wildcards {
+            let mut high = (PartTwoCard::J, 0);
+            let mut second_high = (PartTwoCard::J, 0);
+            let try_permutation: Vec<Self> = reference
+                .clone()
+                .iter_mut()
+                .map(|x| if *x == PartTwoCard::J { not_joker } else { *x })
+                .collect();
+
+            for card in &try_permutation {
+                let tally = try_permutation.iter().filter(|x| x == &card).count();
+                if tally > high.1 || (tally >= high.1 && *card < high.0) {
+                    second_high = high;
+                    high = (*card, tally);
+                } else if tally >= second_high.1 && *card != high.0 {
+                    second_high = (*card, tally);
+                }
+            }
+            if high.1 > final_high.1 {
+                final_high = high;
+                final_second_high = second_high;
+            }
         }
-        println!("   after: high:{h:?}\nsecond: {sh:?}\n");
-        (h, sh)
+        if final_second_high.1 >= final_high.1
+            && final_high.0 != final_second_high.0
+            && final_second_high.0 <= final_high.0
+        {
+            (final_second_high, final_high)
+        } else {
+            (final_high, final_second_high)
+        }
     }
 }
 
@@ -115,10 +138,10 @@ impl CardMatch for PartOneCard {
         let mut second_high = (PartOneCard::C2, 0);
         for card in cards {
             let tally = cards.iter().filter(|x| *x == card).count();
-            if tally > high.1 {
+            if tally > high.1 || (tally >= high.1 && *card < high.0) {
                 second_high = high;
                 high = (*card, tally);
-            } else if tally > second_high.1 && *card != high.0 {
+            } else if tally >= second_high.1 && *card != high.0 {
                 second_high = (*card, tally);
             }
         }
@@ -191,7 +214,10 @@ where
                 }
             }
             1 => Type::HighCard,
-            _ => unreachable!(),
+            _ => {
+                println!("broke with {:?} and {:?}", high, second_high);
+                unreachable!()
+            }
         }
     }
 }
@@ -210,15 +236,9 @@ pub fn run(input: String) {
         two_hands.push(two_hand);
     }
 
-    for hand in &two_hands {
-        println!("{hand:?}");
-    }
     hands.sort();
     two_hands.sort();
-    println!("");
-    for hand in &two_hands {
-        println!("{hand:?}");
-    }
+
     let part_one_total_hands: u32 = hands.len() as u32;
     let part_one: u32 = hands
         .iter()
@@ -232,5 +252,5 @@ pub fn run(input: String) {
         .enumerate()
         .map(|(e, c)| c.bid * (part_two_total_hands - e as u32))
         .sum();
-    println!("Total winnings: {part_two}"); //250456906 too low
+    println!("Total winnings: {part_two}");
 }
