@@ -38,13 +38,13 @@ impl Card {
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
 enum Type {
-    FiveKind(Card),
-    FourKind(Card),
-    FullHouse(Card, Card),
-    ThreeKind(Card),
-    TwoPair(Card, Card),
-    Pair(Card),
-    HighCard(Card),
+    FiveKind,
+    FourKind,
+    FullHouse,
+    ThreeKind,
+    TwoPair,
+    Pair,
+    HighCard,
 }
 
 #[derive(Debug, Eq, PartialEq, PartialOrd, Ord)]
@@ -71,7 +71,7 @@ impl Hand {
     fn determine_hand_type(cards: &Vec<Card>) -> Type {
         let mut high = (Card::C2, 0);
         let mut second_high = (Card::C2, 0);
-        println!("Cards: {cards:?}");
+        // println!("Cards: {cards:?}");
         for card in cards {
             let tally = cards.iter().filter(|x| *x == card).count();
             if tally > high.1 {
@@ -81,25 +81,25 @@ impl Hand {
                 second_high = (*card, tally);
             }
         }
-        println!("high:{high:?}\nsecond: {second_high:?}\n");
+        // println!("high:{high:?}\nsecond: {second_high:?}\n");
         match high.1 {
-            5 => Type::FiveKind(high.0),
-            4 => Type::FourKind(high.0),
+            5 => Type::FiveKind,
+            4 => Type::FourKind,
             3 => {
                 if second_high.1 == 2 {
-                    Type::FullHouse(high.0, second_high.0)
+                    Type::FullHouse
                 } else {
-                    Type::ThreeKind(high.0)
+                    Type::ThreeKind
                 }
             }
             2 => {
                 if second_high.1 == 2 {
-                    Type::TwoPair(high.0, second_high.0)
+                    Type::TwoPair
                 } else {
-                    Type::Pair(high.0)
+                    Type::Pair
                 }
             }
-            1 => Type::HighCard(high.0),
+            1 => Type::HighCard,
             _ => unreachable!(),
         }
     }
@@ -129,5 +129,5 @@ pub fn run(input: String) {
         .enumerate()
         .map(|(e, c)| c.bid * (total_hands - e as u32))
         .sum();
-    println!("Total winnings: {part_one}"); //251036326 is too high
+    println!("Total winnings: {part_one}");
 }
