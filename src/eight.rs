@@ -15,6 +15,49 @@ pub fn run(input: String) {
     let chart = create_map(mapping);
     let steps = follow_part_one(&mut directions, &chart);
     println!("The path took {steps} steps");
+
+    let starting_points = get_starting_points(&chart);
+    let more_steps = follow_part_two(&mut directions, &chart, starting_points);
+    println!("The ghost path took {more_steps} steps");
+}
+
+fn get_starting_points(chart: &HashMap<String, (String, String)>) -> Vec<String> {
+    let mut coll = Vec::new();
+    for key in chart.keys() {
+        if key.chars().last() == Some('A') {
+            coll.push(key.to_string());
+        }
+    }
+    coll
+}
+
+fn follow_part_two(
+    directions: &mut VecDeque<Turn>,
+    chart: &HashMap<String, (String, String)>,
+    starts: Vec<String>,
+) -> u64 {
+    let mut steps: u64 = 0;
+    let mut active_keys = starts.clone();
+
+    println!("For the sake of your sanity...");
+    for s in directions.make_contiguous().iter().cycle() {
+        println!("   {active_keys:?}\n   steps: {steps}");
+        if active_keys.iter().all(|k: &String| k.chars().last() == Some('Z')) {
+            break;
+        }
+        let mut next_keys = Vec::new();
+        for key in active_keys {
+            let next_key = chart.get(&key).unwrap();
+            if *s == Turn::Right {
+                next_keys.push(next_key.1.clone());
+            } else {
+                next_keys.push(next_key.0.clone());
+            }
+        }
+        steps += 1;
+        active_keys = next_keys;
+    }
+    steps
 }
 
 fn follow_part_one(
