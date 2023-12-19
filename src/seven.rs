@@ -44,7 +44,6 @@ impl CardMatch for PartTwoCard {
             .into_iter()
             .filter(|x| *x != PartTwoCard::J)
             .collect::<Vec<Self>>();
-        let reference = cards.clone().to_owned();
         let mut final_high = (PartTwoCard::J, 0);
         let mut final_second_high = (PartTwoCard::J, 0);
         if wildcards.is_empty() {
@@ -62,8 +61,9 @@ impl CardMatch for PartTwoCard {
         for not_joker in wildcards {
             let mut high = (PartTwoCard::J, 0);
             let mut second_high = (PartTwoCard::J, 0);
-            let try_permutation: Vec<Self> = reference
+            let try_permutation: Vec<Self> = cards
                 .clone()
+                .to_owned()
                 .iter_mut()
                 .map(|x| if *x == PartTwoCard::J { not_joker } else { *x })
                 .collect();
