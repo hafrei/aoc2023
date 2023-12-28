@@ -118,8 +118,13 @@ impl Almanac {
             let maybe_source: Option<u64> = self
                 .pages
                 .iter()
-                .filter(|x| x.mapping == map_to_find)
-                .filter_map(|x| x.destination_value(next_dest))
+                .filter_map(|x| {
+                    if x.mapping == map_to_find {
+                        x.destination_value(next_dest)
+                    } else {
+                        None
+                    }
+                })
                 .collect::<Vec<u64>>()
                 .pop();
             if maybe_source.is_some() {
@@ -152,7 +157,7 @@ impl Almanac {
             }
         }
         println!(
-            "\nAbout to process {} seeds. \nThis is going to take awhile, every core in your machine, and all of your ram.\nMaybe go for a run or something.",
+            "\nAbout to process {} seeds. And it won't take forever either!",
             all_seeds.len()
         );
         all_seeds

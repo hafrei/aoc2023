@@ -1,4 +1,4 @@
-use aoc2023::{day::Day::*, eight, fileload, five, four, one, seven, six, three, two, nine};
+use aoc2023::{day::Day::*, eight, fileload, five, four, nine, one, seven, six, three, two};
 use std::{env, process::ExitCode};
 
 fn main() -> ExitCode {
