@@ -1,4 +1,5 @@
 use std::collections::{HashMap, VecDeque};
+use std::time::{Duration, Instant};
 
 #[derive(Debug, PartialEq, Eq)]
 enum Turn {
@@ -36,13 +37,29 @@ fn follow_part_two(
     chart: &HashMap<String, (String, String)>,
     starts: Vec<String>,
 ) -> u64 {
-    let mut steps: u64 = 0;
-    let mut active_keys = starts.clone();
+    let mut steps: u64 = 27605384352;
+    let mut active_keys = vec![
+        "QNP".into(),
+        "TVC".into(),
+        "PDR".into(),
+        "VTP".into(),
+        "BNX".into(),
+        "DVT".into(),
+    ];
+
+    let twenty_minutes = Duration::from_secs(300);
+    let mut bookmark = Instant::now();
 
     println!("For the sake of your sanity...");
     for s in directions.make_contiguous().iter().cycle() {
-        println!("   {active_keys:?}\n   steps: {steps}");
-        if active_keys.iter().all(|k: &String| k.chars().last() == Some('Z')) {
+        if bookmark.elapsed().as_secs() >= twenty_minutes.as_secs() {
+            println!("{active_keys:?}\n   steps: {steps}\n");
+            bookmark = Instant::now();
+        }
+        if active_keys
+            .iter()
+            .all(|k: &String| k.chars().last() == Some('Z'))
+        {
             break;
         }
         let mut next_keys = Vec::new();
