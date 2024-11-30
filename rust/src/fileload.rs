@@ -2,7 +2,7 @@ use self::FileLoadError::*;
 use crate::day::Day;
 use std::{env, fs::File, io::Read, str::FromStr};
 
-const INPUTS_DIR: &str = "inputs";
+const INPUTS_DIR: &str = "../inputs";
 
 pub fn read_input(day: &str, input_buffer: &mut String) -> Result<Day, FileLoadError> {
     let proj_file = format!("src/{}.rs", day);

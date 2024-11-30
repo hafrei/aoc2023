@@ -37,14 +37,9 @@ fn follow_part_two(
     chart: &HashMap<String, (String, String)>,
     starts: Vec<String>,
 ) -> u64 {
-    let mut steps: u64 = 27605384352;
+    let mut steps: u64 = 66304551576;
     let mut active_keys = vec![
-        "QNP".into(),
-        "TVC".into(),
-        "PDR".into(),
-        "VTP".into(),
-        "BNX".into(),
-        "DVT".into(),
+        "RVL".into(), "HNL".into(), "KMT".into(), "FVK".into(), "LJT".into(), "CQJ".into()
     ];
 
     let twenty_minutes = Duration::from_secs(300);
