@@ -13,6 +13,7 @@ rust/Cargo.lock
 
 # intermediary build step files for C
 c/*.o
+c/aoc
 
 # OS generated files #
 ######################
